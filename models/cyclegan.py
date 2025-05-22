@@ -44,14 +44,14 @@ class CycleGAN(nn.Module):
         idt_y = self.net_G(real_y)      # G(y) \sim y
         idt_x = self.net_F(real_x)      # F(x) \sim x
         
-        return
+        return fake_x, fake_y, recon_x, recon_y, idt_x, idt_y
     
     def get_generator_loss(
         self,
         real_x, real_y,
-        idt_x, idt_y,
         fake_x, fake_y,
-        recon_x, recon_y
+        recon_x, recon_y,
+        idt_x, idt_y,
     ):
         self.set_requires_grad([self.net_Dx, self.net_Dy], False)  # Ds require no gradients when optimizing Gs
         
