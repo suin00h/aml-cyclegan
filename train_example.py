@@ -33,8 +33,8 @@ if __name__ == "__main__":
     )
     
     # preparing input real images
-    real_x = torch.randn((10, 256, 3))
-    real_y = torch.randn((10, 256, 3))
+    real_x = torch.randn((10, 3, 128, 128))
+    real_y = torch.randn((10, 3, 128, 128))
     
     # forward
     fake_x, fake_y, recon_x, recon_y, idt_x, idt_y = net(real_x, real_y)
