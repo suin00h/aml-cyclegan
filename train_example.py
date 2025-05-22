@@ -12,10 +12,10 @@ if __name__ == "__main__":
     lambda_y = 2e-4
     lambda_idt = 2e-4
     
-    net_G = Generator()
-    net_F = Generator()
-    net_Dx = Discriminator()
-    net_Dy = Discriminator()
+    net_G = Generator().to("cuda")
+    net_F = Generator().to("cuda")
+    net_Dx = Discriminator().to("cuda")
+    net_Dy = Discriminator().to("cuda")
     
     net = CycleGAN(
         net_G, net_F, net_Dx, net_Dy,
@@ -33,8 +33,9 @@ if __name__ == "__main__":
     )
     
     # preparing input real images
-    real_x = torch.randn((10, 3, 128, 128))
-    real_y = torch.randn((10, 3, 128, 128))
+    # images have to be normalized in advance: (-1, 1)
+    real_x = torch.randn((10, 3, 128, 128), device="cuda")
+    real_y = torch.randn((10, 3, 128, 128), device="cuda")
     
     # forward
     fake_x, fake_y, recon_x, recon_y, idt_x, idt_y = net(real_x, real_y)

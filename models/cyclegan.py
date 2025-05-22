@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-from generator import Generator
-from discriminator import Discriminator
+from models.generator import Generator
+from models.discriminator import Discriminator
 
 class CycleGAN(nn.Module):
     def __init__(
