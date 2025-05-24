@@ -1,7 +1,6 @@
 import os
 import random
-import torch
-import cv2
+from PIL import Image
 import torch.utils.data as data
 from utils.transform import transform
 
@@ -15,8 +14,8 @@ class BaseDataset(data.Dataset):
         image_paths = [os.path.join(dir,fname)
                   for fname in sorted(os.listdir(dir))]
         return image_paths
-    
-    
+
+
 class TrainDataset(BaseDataset):
     def __init__(self, params):
         super().__init__(params)
@@ -33,28 +32,21 @@ class TrainDataset(BaseDataset):
 
         # self.input_nc = params.output_nc if self.BtoA else params.input_nc
         # self.output_nc = params.input_nc if self.BtoA else params.output_nc
-        
+
         self.transform = transform(params)
 
-         
+
     def __getitem__(self, index):
         # if length of A and B is different, cycle again
-        # randomize index for domain B        
+        # randomize index for domain B
         path_A = self.paths_A[index % self.size_A]
         path_B = self.paths_B[random.randint(0, self.size_B - 1)]
 
-        image_A = cv2.imread(path_A, cv2.COLOR_BGR2RGB)
-        image_B = cv2.imread(path_B, cv2.COLOR_BGR2RGB)
+        image_A = Image.open(path_A).convert("RGB")
+        image_B = Image.open(path_B).convert("RGB")
 
-        image_A = torch.from_numpy(image_A).permute(2, 0, 1).float() / 255.0
-        image_B = torch.from_numpy(image_B).permute(2, 0, 1).float() / 255.0
-        
-        A = self.transform(image_A)
-        B = self.transform(image_B)
-
-        # Move to GPU
-        A = A.cuda()
-        B = B.cuda()
+        A = self.transform(image_A).cuda()
+        B = self.transform(image_B).cuda()
 
         return A, B
 
