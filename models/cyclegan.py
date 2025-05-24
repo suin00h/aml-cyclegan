@@ -4,6 +4,7 @@ from torch import nn
 from models.generator import Generator
 from models.discriminator import Discriminator
 
+from utils.setup import get_scheduler
 class CycleGAN(nn.Module):
     def __init__(
         self,
@@ -105,6 +106,13 @@ class CycleGAN(nn.Module):
             if net is not None:
                 for param in net.parameters():
                     param.requires_grad = requires_grad
+
+    def set_scheduler(self, params, optimizers):
+        self.schedulers = [get_scheduler(params, optimizer) for optimizer in optimizers]
+
+    def update_lr(self):
+        for scheduler in self.schedulers:
+            scheduler.step()
 
 # from original code repo
 class GANLoss(nn.Module):
