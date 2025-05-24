@@ -1,12 +1,11 @@
 import os
 import random
 import torch
-
 import cv2
-import torch.utils.data as D
+import torch.utils.data as data
 from utils.transform import transform
 
-class BaseDataset(D.Dataset):
+class BaseDataset(data.Dataset):
     def __init__(self, params):
         self.params = params
         self.dataname = params.dataname
@@ -47,11 +46,15 @@ class TrainDataset(BaseDataset):
         image_A = cv2.imread(path_A, cv2.COLOR_BGR2RGB)
         image_B = cv2.imread(path_B, cv2.COLOR_BGR2RGB)
 
-        image_A = torch.from_numpy(image_A).permute(2, 0, 1).float()
-        image_B = torch.from_numpy(image_B).permute(2, 0, 1).float()
+        image_A = torch.from_numpy(image_A).permute(2, 0, 1).float() / 255.0
+        image_B = torch.from_numpy(image_B).permute(2, 0, 1).float() / 255.0
         
         A = self.transform(image_A)
         B = self.transform(image_B)
+
+        # Add batch dimension and move to GPU
+        A = A.unsqueeze(0).cuda()
+        B = B.unsqueeze(0).cuda()
 
         return A, B
 

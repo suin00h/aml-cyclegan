@@ -2,6 +2,7 @@ import os
 import itertools
 import torch
 import argparse
+import wandb
 
 from models.cyclegan import CycleGAN
 from models.generator import Generator
@@ -9,6 +10,7 @@ from models.discriminator import Discriminator
 
 from configs.config import TrainConfig
 from dataset import TrainDataset
+from utils.setup import init_wandb
 
 
 def parse_args():
@@ -23,6 +25,8 @@ if __name__ == "__main__":
     params = TrainConfig(yaml_path)
     dataset = TrainDataset(params)
 
+    init_wandb(params)
+
     net_G = Generator().to("cuda")
     net_F = Generator().to("cuda")
     net_Dx = Discriminator().to("cuda")
@@ -33,6 +37,8 @@ if __name__ == "__main__":
         params.lambda_x, params.lambda_y, params.lambda_idt,
         "cuda"
     )
+
+    net.init_all_weights()
     
     opt_Gen = torch.optim.Adam(
         itertools.chain(net_G.parameters(), net_F.parameters()),
@@ -72,3 +78,29 @@ if __name__ == "__main__":
             )
             loss_Disc.backward()
             opt_Disc.step()
+
+            # Log scalar losses to wandb
+            if i % 10 == 0:  # every 10 steps
+                wandb.log({
+                    "Generator Loss": loss_Gen.item(),
+                    "Discriminator Loss": loss_Disc.item(),
+                    "Epoch": epoch,
+                    "Step": i,
+                })
+
+            with torch.no_grad():
+                real_A = real_x[0].detach().cpu()
+                real_B = real_y[0].detach().cpu()
+                fake_B = fake_y[0].detach().cpu()
+                fake_A = fake_x[0].detach().cpu()
+                recon_A = recon_x[0].detach().cpu()
+                recon_B = recon_y[0].detach().cpu()
+
+                # [real_A | fake_B | recon_A], [real_B | fake_A | recon_B]
+                image_grid_A = torch.cat([real_A, fake_B, recon_A], dim=-1)
+                image_grid_B = torch.cat([real_B, fake_A, recon_B], dim=-1)
+                image_grid = torch.cat([image_grid_A, image_grid_B], dim=1)
+
+                wandb.log({
+                    f"Epoch {epoch} | Generated Samples": wandb.Image(image_grid, caption=f"Epoch {epoch}")
+                })

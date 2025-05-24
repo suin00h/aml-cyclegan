@@ -6,11 +6,11 @@ def transform(params):
     if params.resize:
         transform_list.append(T.Resize(params.size, T.InterpolationMode.BICUBIC))
 
-    if params.to_grayscale:
+    if params.grayscale:
         transform_list.append(T.Grayscale(num_output_channels=1))
     
     if params.normalize:
-        if params.to_grayscale:
+        if params.grayscale:
             transform_list.append(T.Normalize((0.5,), (0.5,)))
         else:
             transform_list.append(T.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
