@@ -5,7 +5,7 @@ transform:
 
 dataset:
   name: maps
-  path: # path to dataset
+  path: ./datasets/maps
   direction: BtoA
   A_channel: 3
   B_channel: 3

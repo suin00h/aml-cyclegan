@@ -9,13 +9,13 @@ class TrainConfig:
 
         # Set train parameters
         training_args = self.config_yaml.get("training_args", {})
-        self.lr = training_args.get("lr", 0.0002)
-        self.lambda_x = training_args.get("lambda_x", 2e-4)
-        self.lambda_y = training_args.get("lambda_y", 2e-4)
-        self.lambda_idt = training_args.get("lambda_idt", 2e-4)
-        self.epoch_cnt = training_args.get("epoch_cnt", 2)
-        self.n_epochs = training_args.get("n_epochs", 100)
-        self.n_epochs_decay = training_args.get("n_epochs_decay", 100)
+        self.lr = float(training_args.get("lr", 0.0002))
+        self.lambda_x = float(training_args.get("lambda_x", 2e-4))
+        self.lambda_y = float(training_args.get("lambda_y", 2e-4))
+        self.lambda_idt = float(training_args.get("lambda_idt", 2e-4))
+        self.epoch_cnt = int(training_args.get("epoch_cnt", 1))
+        self.n_epochs = int(training_args.get("n_epochs", 100))
+        self.n_epochs_decay = int(training_args.get("n_epochs_decay", 100))
 
         # Set transform options
         transform = self.config_yaml.get("transform", {})
@@ -26,11 +26,11 @@ class TrainConfig:
 
         # Set dataset path
         dataset = self.config_yaml.get("dataset", {})
-        self.dataname = dataset.get("name", default="maps")
-        self.datapath = dataset.get("path", default="./datasets/maps")
-        self.direction = dataset.get("direction", default="BtoA")
-        self.input_nc = dataset.get("A_channel", default=3)
-        self.output_nc = dataset.get("B_channel", default=3)
+        self.dataname = dataset.get("name")
+        self.datapath = dataset.get("path")
+        self.direction = dataset.get("direction")
+        self.input_nc = dataset.get("A_channel")
+        self.output_nc = dataset.get("B_channel")
 
     def update_recursive(self, dict1, dict2):
         """

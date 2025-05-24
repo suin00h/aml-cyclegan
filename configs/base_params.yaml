@@ -3,6 +3,9 @@ training_args:
   lambda_x: 2e-4
   lambda_y: 2e-4
   lambda_idt: 2e-4
+  epoch_cnt: 1
+  n_epochs: 100
+  n_epochs_decay: 100
 
 transform:
   resize: true
