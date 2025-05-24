@@ -1,8 +1,8 @@
 training_args:
   lr: 2e-5
-  lambda_x: 2e-4
-  lambda_y: 2e-4
-  lambda_idt: 2e-4
+  lambda_x: 10
+  lambda_y: 10
+  lambda_idt: 0.5
   epoch_cnt: 1
   n_epochs: 100
   n_epochs_decay: 100

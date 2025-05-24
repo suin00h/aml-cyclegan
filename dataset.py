@@ -40,6 +40,7 @@ class TrainDataset(BaseDataset):
         # if length of A and B is different, cycle again
         # randomize index for domain B
         path_A = self.paths_A[index % self.size_A]
+        # path_B = self.paths_B[index % self.size_B]
         path_B = self.paths_B[random.randint(0, self.size_B - 1)]
 
         image_A = Image.open(path_A).convert("RGB")
