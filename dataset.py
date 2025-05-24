@@ -52,11 +52,11 @@ class TrainDataset(BaseDataset):
         A = self.transform(image_A)
         B = self.transform(image_B)
 
-        # Add batch dimension and move to GPU
-        A = A.unsqueeze(0).cuda()
-        B = B.unsqueeze(0).cuda()
+        # Move to GPU
+        A = A.cuda()
+        B = B.cuda()
 
         return A, B
 
     def __len__(self):
-        return max(self.A_size, self.B_size)
+        return max(self.size_A, self.size_B)
