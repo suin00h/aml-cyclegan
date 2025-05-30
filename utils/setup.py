@@ -1,3 +1,5 @@
+import os
+import torch
 import wandb
 import torch.nn.init as init
 from torch.optim import lr_scheduler
@@ -28,3 +30,9 @@ def init_weights(net, init_gain):
         if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('Linear') != -1):
             init.normal_(m.weight.data, 0.0, init_gain)
     net.apply(init_func)
+
+def load_model_weights(model, path):
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Model checkpoint not found at {path}")
+    model.load_state_dict(torch.load(path, map_location="cuda"))
+    print(f"Loaded weights from {path}")

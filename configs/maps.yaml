@@ -9,3 +9,4 @@ dataset:
   direction: BtoA
   A_channel: 3
   B_channel: 3
+  save_dir: ./checkpoints/maps

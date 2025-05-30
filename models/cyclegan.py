@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 
@@ -120,6 +121,14 @@ class CycleGAN(nn.Module):
         init_weights(self.net_F, init_gain)
         init_weights(self.net_Dx, init_gain)
         init_weights(self.net_Dy, init_gain)
+
+    def save_model(self, save_dir, epoch):
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+        torch.save(self.net_G.state_dict(), os.path.join(save_dir, f"net_G_epoch_{epoch}.pth"))
+        torch.save(self.net_F.state_dict(), os.path.join(save_dir, f"net_F_epoch_{epoch}.pth"))
+        torch.save(self.net_Dx.state_dict(), os.path.join(save_dir, f"net_Dx_epoch_{epoch}.pth"))
+        torch.save(self.net_Dy.state_dict(), os.path.join(save_dir, f"net_Dy_epoch_{epoch}.pth"))
 
 # from original code repo
 class GANLoss(nn.Module):

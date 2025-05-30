@@ -12,8 +12,8 @@ from models.discriminator import Discriminator
 
 from configs.config import TrainConfig
 from dataset import TrainDataset
+from utils.buffer import ImageBuffer
 from utils.setup import init_wandb
-
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -26,7 +26,10 @@ if __name__ == "__main__":
 
     params = TrainConfig(yaml_path)
     dataset = TrainDataset(params)
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+    dataloader = DataLoader(dataset, batch_size=params.batch_size, shuffle=True)
+
+    fake_x_pool = ImageBuffer(params.max_buffer)
+    fake_y_pool = ImageBuffer(params.max_buffer)
 
     init_wandb(params)
 
@@ -75,10 +78,20 @@ if __name__ == "__main__":
             
             # update Discriminator
             opt_Disc.zero_grad()
+
+            # TODO: improve buffer algorithm
+            fake_x_buffered = fake_x_pool.sample(fake_x.detach())
+            fake_y_buffered = fake_y_pool.sample(fake_y.detach())
+
             loss_Disc = net.get_discriminator_loss(
                 real_x, real_y,
-                fake_x, fake_y
+                fake_x_buffered, fake_y_buffered
             )
+
+            # loss_Disc = net.get_discriminator_loss(
+            #     real_x, real_y,
+            #     fake_x, fake_y
+            # )
             loss_Disc.backward()
             opt_Disc.step()
 
@@ -92,20 +105,22 @@ if __name__ == "__main__":
                     "Step": i,
                 })
 
-            if epoch % 5 == 0:
-                with torch.no_grad():
-                    real_A = real_x[0].detach().cpu()
-                    real_B = real_y[0].detach().cpu()
-                    fake_B = fake_y[0].detach().cpu()
-                    fake_A = fake_x[0].detach().cpu()
-                    recon_A = recon_x[0].detach().cpu()
-                    recon_B = recon_y[0].detach().cpu()
+            if epoch % 5 == 0 and i == 0:
+                real_A = real_x[0].detach().cpu()
+                real_B = real_y[0].detach().cpu()
+                fake_B = fake_y[0].detach().cpu()
+                fake_A = fake_x[0].detach().cpu()
+                recon_A = recon_x[0].detach().cpu()
+                recon_B = recon_y[0].detach().cpu()
 
-                    # [real_A | fake_B | recon_A], [real_B | fake_A | recon_B]
-                    image_grid_A = torch.cat([real_A, fake_B, recon_A], dim=-1)
-                    image_grid_B = torch.cat([real_B, fake_A, recon_B], dim=-1)
-                    image_grid = torch.cat([image_grid_A, image_grid_B], dim=1)
+                # [real_A | fake_B | recon_A], [real_B | fake_A | recon_B]
+                image_grid_A = torch.cat([real_A, fake_B, recon_A], dim=-1)
+                image_grid_B = torch.cat([real_B, fake_A, recon_B], dim=-1)
+                image_grid = torch.cat([image_grid_A, image_grid_B], dim=1)
 
-                    wandb.log({
-                        f"Epoch {epoch} | Generated Samples": wandb.Image(image_grid, caption=f"Epoch {epoch}")
-                    })
+                wandb.log({
+                    f"Epoch {epoch} | Generated Samples": wandb.Image(image_grid, caption=f"Epoch {epoch}")
+                })
+
+        if epoch % params.save_epochs == 0:
+            net.save_model(params.save_dir, epoch)
