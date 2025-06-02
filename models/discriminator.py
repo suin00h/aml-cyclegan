@@ -33,7 +33,7 @@ class Discriminator(nn.Module):
     
     def get_conv_block(self, in_ch, out_ch, stride=2, is_initial=False):
         conv = nn.Conv2d(in_ch, out_ch, 4, stride, 1)
-        norm = nn.BatchNorm2d(out_ch)
+        norm = nn.InstanceNorm2d(out_ch)
         relu = nn.LeakyReLU(0.2, True)
         
         if is_initial:
