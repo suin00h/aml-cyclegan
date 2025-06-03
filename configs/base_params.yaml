@@ -6,8 +6,8 @@ training_args:
   epoch_cnt: 1
   n_epochs: 100
   n_epochs_decay: 100
-  batch_size: 10
-  save_epochs: 5
+  batch_size: 1
+  save_epochs: 10
   max_buffer: 50
 
 transform:
