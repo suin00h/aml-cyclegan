@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 
 from models.generator import Generator
-from configs.config import TrainConfig
+from configs.config import TestConfig
 from dataset import TrainDataset
 from utils.setup import load_model_weights
 
@@ -46,7 +46,7 @@ def run_inference(net_G, net_F, dataloader, save_dir):
 if __name__ == "__main__":
     args = parse_args()
     yaml_path = os.path.join("configs", f"{args.name}.yaml")
-    params = TrainConfig(yaml_path)
+    params = TestConfig(yaml_path)
 
     test_dataset = TrainDataset(params)  # assuming same dataset class is used
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
