@@ -1,1 +1,3 @@
 dummy.txt
+**/__pycache__/
+*.pyc

@@ -67,7 +67,7 @@ class UnetBlock(nn.Module):
         relu = nn.LeakyReLU(0.2, True)
         conv = nn.Conv2d(self.out_ch, self.in_ch, kernel_size=4,
                          stride=2, padding=1)
-        norm = nn.BatchNorm2d(self.in_ch)
+        norm = nn.InstanceNorm2d(self.in_ch)
         
         if self.outermost:
             block = [conv]
