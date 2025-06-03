@@ -53,3 +53,39 @@ class TrainDataset(BaseDataset):
 
     def __len__(self):
         return max(self.size_A, self.size_B)
+    
+class TestDataset(BaseDataset):
+    def __init__(self, params):
+        super().__init__(params)
+        # self.BtoA = params.direction == "BtoA"
+
+        self.dir_A = os.path.join(self.datapath, self.params.mode + "A")
+        self.dir_B = os.path.join(self.datapath, self.params.mode + "B")
+
+        self.paths_A = self.get_dataset(self.dir_A)
+        self.paths_B = self.get_dataset(self.dir_B)
+
+        self.size_A = len(self.paths_A)
+        self.size_B = len(self.paths_B)
+
+        # self.input_nc = params.output_nc if self.BtoA else params.input_nc
+        # self.output_nc = params.input_nc if self.BtoA else params.output_nc
+
+        self.transform = transform(params)
+
+
+    def __getitem__(self, index):
+        # if length of A and B is different, cycle again
+        path_A = self.paths_A[index % self.size_A]
+        path_B = self.paths_B[index % self.size_B]
+
+        image_A = Image.open(path_A).convert("RGB")
+        image_B = Image.open(path_B).convert("RGB")
+
+        A = self.transform(image_A).cuda()
+        B = self.transform(image_B).cuda()
+
+        return A, B
+
+    def __len__(self):
+        return max(self.size_A, self.size_B)

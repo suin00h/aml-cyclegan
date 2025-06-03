@@ -6,7 +6,7 @@ from torchvision.utils import save_image
 
 from models.generator import Generator
 from configs.config import TestConfig
-from dataset import TrainDataset
+from dataset import TestDataset
 from utils.setup import load_model_weights
 
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     yaml_path = os.path.join("configs", f"{args.name}.yaml")
     params = TestConfig(yaml_path)
 
-    test_dataset = TrainDataset(params)  # assuming same dataset class is used
+    test_dataset = TestDataset(params)  # assuming same dataset class is used
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     # Define Generators
