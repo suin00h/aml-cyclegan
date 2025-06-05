@@ -1,0 +1,12 @@
+inherit_from: configs/base_params.yaml
+
+transform:
+  size: [256,256]
+
+dataset:
+  name: cezanne2photo
+  path: ./datasets/cezanne2photo
+  direction: BtoA
+  A_channel: 3
+  B_channel: 3
+  save_dir: ./checkpoints/cezanne2photo
