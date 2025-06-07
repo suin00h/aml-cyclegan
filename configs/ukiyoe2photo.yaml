@@ -6,7 +6,7 @@ transform:
 dataset:
   name: ukiyoe2photo
   path: ./datasets/ukiyoe2photo
-  direction: BtoA
+  direction: AtoB
   A_channel: 3
   B_channel: 3
   save_dir: ./checkpoints/ukiyoe2photo

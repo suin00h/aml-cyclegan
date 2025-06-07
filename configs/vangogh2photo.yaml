@@ -6,7 +6,7 @@ transform:
 dataset:
   name: vangogh2photo
   path: ./datasets/vangogh2photo
-  direction: BtoA
+  direction: AtoB
   A_channel: 3
   B_channel: 3
   save_dir: ./checkpoints/vangogh2photo

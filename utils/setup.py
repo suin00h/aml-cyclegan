@@ -24,11 +24,18 @@ def init_wandb(params):
         }
     )
 
-def init_weights(net, init_gain):
+def init_weights(net, init_gain=0.02):
     def init_func(m):
         classname = m.__class__.__name__
         if hasattr(m, 'weight') and (classname.find('Conv') != -1 or classname.find('Linear') != -1):
             init.normal_(m.weight.data, 0.0, init_gain)
+            if hasattr(m, 'bias') and m.bias is not None:
+                init.constant_(m.bias.data, 0.0)
+        elif classname.find('BatchNorm2d') != -1 or classname.find('InstanceNorm2d') != -1:
+            if hasattr(m, 'weight') and m.weight is not None:
+                init.normal_(m.weight.data, 1.0, init_gain)
+            if hasattr(m, 'bias') and m.bias is not None:
+                init.constant_(m.bias.data, 0.0)
     net.apply(init_func)
 
 def load_model_weights(model, path):

@@ -19,7 +19,7 @@ class BaseDataset(data.Dataset):
 class TrainDataset(BaseDataset):
     def __init__(self, params):
         super().__init__(params)
-        # self.BtoA = params.direction == "BtoA"
+        self.BtoA = params.direction == "BtoA"
 
         self.dir_A = os.path.join(self.datapath, self.params.mode + "A")
         self.dir_B = os.path.join(self.datapath, self.params.mode + "B")
@@ -37,19 +37,20 @@ class TrainDataset(BaseDataset):
 
 
     def __getitem__(self, index):
-        # if length of A and B is different, cycle again
-        # randomize index for domain B
-        path_A = self.paths_A[index % self.size_A]
-        # path_B = self.paths_B[index % self.size_B]
-        path_B = self.paths_B[random.randint(0, self.size_B - 1)]
+        if self.BtoA:
+            input_path = self.paths_B[index % self.size_B]
+            target_path = self.paths_A[random.randint(0, self.size_A - 1)]
+        else:
+            input_path = self.paths_A[index % self.size_A]
+            target_path = self.paths_B[random.randint(0, self.size_B - 1)]
 
-        image_A = Image.open(path_A).convert("RGB")
-        image_B = Image.open(path_B).convert("RGB")
+        input_image = Image.open(input_path).convert("RGB")
+        target_image = Image.open(target_path).convert("RGB")
 
-        A = self.transform(image_A).cuda()
-        B = self.transform(image_B).cuda()
+        input_tensor = self.transform(input_image).cuda()
+        target_tensor = self.transform(target_image).cuda()
 
-        return A, B
+        return input_tensor, target_tensor
 
     def __len__(self):
         return max(self.size_A, self.size_B)
@@ -57,7 +58,7 @@ class TrainDataset(BaseDataset):
 class TestDataset(BaseDataset):
     def __init__(self, params):
         super().__init__(params)
-        # self.BtoA = params.direction == "BtoA"
+        self.BtoA = params.direction == "BtoA"
 
         self.dir_A = os.path.join(self.datapath, self.params.mode + "A")
         self.dir_B = os.path.join(self.datapath, self.params.mode + "B")
@@ -75,17 +76,20 @@ class TestDataset(BaseDataset):
 
 
     def __getitem__(self, index):
-        # if length of A and B is different, cycle again
-        path_A = self.paths_A[index % self.size_A]
-        path_B = self.paths_B[index % self.size_B]
+        if self.BtoA:
+            input_path = self.paths_B[index % self.size_B]
+            target_path = self.paths_A[random.randint(0, self.size_A - 1)]
+        else:
+            input_path = self.paths_A[index % self.size_A]
+            target_path = self.paths_B[random.randint(0, self.size_B - 1)]
 
-        image_A = Image.open(path_A).convert("RGB")
-        image_B = Image.open(path_B).convert("RGB")
+        input_image = Image.open(input_path).convert("RGB")
+        target_image = Image.open(target_path).convert("RGB")
 
-        A = self.transform(image_A).cuda()
-        B = self.transform(image_B).cuda()
+        input_tensor = self.transform(input_image).cuda()
+        target_tensor = self.transform(target_image).cuda()
 
-        return A, B
+        return input_tensor, target_tensor
 
     def __len__(self):
         return max(self.size_A, self.size_B)

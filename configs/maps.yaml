@@ -6,7 +6,7 @@ transform:
 dataset:
   name: maps
   path: ./datasets/maps
-  direction: BtoA
+  direction: AtoB
   A_channel: 3
   B_channel: 3
   save_dir: ./checkpoints/maps

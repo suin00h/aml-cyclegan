@@ -6,7 +6,7 @@ transform:
 dataset:
   name: horse2zebra
   path: ./datasets/horse2zebra
-  direction: BtoA
+  direction: AtoB
   A_channel: 3
   B_channel: 3
   save_dir: ./checkpoints/horse2zebra
