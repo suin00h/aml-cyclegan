@@ -19,7 +19,13 @@ def parse_args():
 
 @torch.no_grad()
 def run_inference(net_G, net_F, dataloader, save_dir):
+    # Separate folders for each image type
     os.makedirs(save_dir, exist_ok=True)
+
+    subdirs = ["real_x", "fake_y", "real_y", "fake_x"]
+    for sub in subdirs:
+        os.makedirs(os.path.join(save_dir, sub), exist_ok=True)
+
     net_G.eval()
     net_F.eval()
 
@@ -37,11 +43,12 @@ def run_inference(net_G, net_F, dataloader, save_dir):
             fx = fake_x[b].cpu()
             fy = fake_y[b].cpu()
 
-            # save [real_x | fake_y]
-            save_image(torch.cat([x, fy], dim=-1), os.path.join(save_dir, f"AtoB_{idx}_{b}.png"), normalize=True)
-            # save [real_y | fake_x]
-            save_image(torch.cat([y, fx], dim=-1), os.path.join(save_dir, f"BtoA_{idx}_{b}.png"), normalize=True)
+            # Save each image separately
+            save_image(x, os.path.join(os.path.join(save_dir, "real_x"), f"{idx}_{b}.png"), normalize=True)
+            save_image(fy, os.path.join(os.path.join(save_dir, "fake_y"), f"{idx}_{b}.png"), normalize=True)
 
+            save_image(y, os.path.join(os.path.join(save_dir, "real_y"), f"{idx}_{b}.png"), normalize=True)
+            save_image(fx, os.path.join(os.path.join(save_dir, "fake_x"), f"{idx}_{b}.png"), normalize=True)
 
 if __name__ == "__main__":
     args = parse_args()

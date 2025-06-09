@@ -78,10 +78,10 @@ class TestDataset(BaseDataset):
     def __getitem__(self, index):
         if self.BtoA:
             input_path = self.paths_B[index % self.size_B]
-            target_path = self.paths_A[random.randint(0, self.size_A - 1)]
+            target_path = self.paths_A[index % self.size_A]
         else:
             input_path = self.paths_A[index % self.size_A]
-            target_path = self.paths_B[random.randint(0, self.size_B - 1)]
+            target_path = self.paths_B[index % self.size_B]
 
         input_image = Image.open(input_path).convert("RGB")
         target_image = Image.open(target_path).convert("RGB")

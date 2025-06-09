@@ -62,6 +62,7 @@ if __name__ == "__main__":
         net.update_lr()
         for i, data in enumerate(dataloader):
             real_x, real_y = data
+
             # forward
             fake_x, fake_y, recon_x, recon_y, idt_x, idt_y = net(real_x, real_y)
             
