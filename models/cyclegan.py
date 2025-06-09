@@ -33,7 +33,7 @@ class CycleGAN(nn.Module):
     
     def forward(self, real_x, real_y):
         """
-        Input:      Two real images of size ( , , ) from distribution X and Y respectively.
+        Input:      Two real images of size (B, C, H, W) from distribution X and Y respectively.
         """
         fake_y = self.net_G(real_x)     # X -> G(X)
         recon_x = self.net_F(fake_y)    # G(X) -> F(G(X))
