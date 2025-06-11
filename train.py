@@ -40,7 +40,7 @@ if __name__ == "__main__":
     
     net = CycleGAN(
         net_G, net_F, net_Dx, net_Dy,
-        params.lambda_x, params.lambda_y, params.lambda_idt,
+        params.lambda_x, params.lambda_y, params.lambda_idt, params.lambda_clip,
         "cuda"
     )
 

@@ -1,6 +1,10 @@
 import os
 import torch
+import torch.nn.functional as F
+
 from torch import nn
+from torchvision import transforms
+from transformers import CLIPProcessor, CLIPModel
 
 from models.generator import Generator
 from models.discriminator import Discriminator
@@ -17,6 +21,7 @@ class CycleGAN(nn.Module):
         lambda_x,
         lambda_y,
         lambda_idt,
+        lambda_clip,
         device: "str"
     ):
         super().__init__()
@@ -25,10 +30,12 @@ class CycleGAN(nn.Module):
         self.net_F = net_F          # maps Y to X
         self.net_Dx = net_Dx        # distinguish between images x and translated images F(y)
         self.net_Dy = net_Dy        # distinguish between images y and translated images G(x)
+        self.clip = CLIPFeatureExtractor()
 
         self.lambda_x = lambda_x             # regularizing constant
         self.lambda_y = lambda_y
         self.lambda_idt = lambda_idt
+        self.lambda_clip = lambda_clip
 
         self.crit_idt = nn.L1Loss()
         self.crit_gan = GANLoss("vanilla").to(device)
@@ -73,8 +80,13 @@ class CycleGAN(nn.Module):
         loss_cycle_y = self.crit_cycle(recon_y, real_y) * self.lambda_y # ||G(F(y)) - y|| * lambda_y
         loss_cycle = loss_cycle_x + loss_cycle_y
 
+        # compute CLIP loss
+        loss_clip_x = self.crit_clip(self.clip(real_x), self.clip(fake_x))
+        loss_clip_y = self.crit_clip(self.clip(real_y), self.clip(fake_y))
+        loss_clip = (loss_clip_x + loss_clip_y) * self.lambda_clip
+
         # total loss: GAN loss + Cycle loss + Identity loss
-        return loss_idt + loss_gan + loss_cycle
+        return loss_idt + loss_gan + loss_cycle + loss_clip
 
     def get_discriminator_loss(
         self,
@@ -94,6 +106,10 @@ class CycleGAN(nn.Module):
         loss_fake = loss_fake_x + loss_fake_y
 
         return (loss_real + loss_fake) * 0.5
+
+    def crit_clip(self, emb1, emb2):
+        sim = F.cosine_similarity(emb1, emb2, dim=1)
+        return 1 - sim
 
     # from original code repo
     def set_requires_grad(self, nets, requires_grad=False):
@@ -198,3 +214,25 @@ class GANLoss(nn.Module):
             else:
                 loss = prediction.mean()
         return loss
+
+class CLIPFeatureExtractor(nn.Module):
+    def __init__(self, device="cuda"):
+        super().__init__()
+        self.device = device
+        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
+        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        for parameter in self.model.parameters():
+            parameter.requires_grad = False
+        self.model.eval()
+    
+    def forward(self, img):
+        img = ((img + 1) / 2).clamp(0, 1) # NCHW; [-1, 1] to [0, 1]
+        img = (img * 255).to(torch.uint8)
+        
+        imgs = [transforms.ToPILImage()(im.cpu()) for im in img]
+        inputs = self.processor(images=imgs, return_tensors="pt", padding=True).to(self.device)
+        
+        with torch.no_grad():
+            features = self.model.get_image_features(**inputs) # (N, 512)
+            
+        return features

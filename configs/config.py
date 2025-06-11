@@ -13,6 +13,7 @@ class TrainConfig:
         self.lambda_x = float(training_args.get("lambda_x", 10))
         self.lambda_y = float(training_args.get("lambda_y", 10))
         self.lambda_idt = float(training_args.get("lambda_idt", 0.5))
+        self.lambda_clip = float(training_args.get("lambda_clip", 0.2))
         self.epoch_cnt = int(training_args.get("epoch_cnt", 1))
         self.n_epochs = int(training_args.get("n_epochs", 100))
         self.n_epochs_decay = int(training_args.get("n_epochs_decay", 100))
