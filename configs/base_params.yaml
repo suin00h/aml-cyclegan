@@ -1,0 +1,16 @@
+training_args:
+  lr: 0.0002
+  lambda_x: 10
+  lambda_y: 10
+  lambda_idt: 0.5
+  epoch_cnt: 1
+  n_epochs: 100
+  n_epochs_decay: 100
+  batch_size: 1
+  save_epochs: 10
+  max_buffer: 50
+
+transform:
+  resize: True
+  grayscale: False
+  normalize: True
