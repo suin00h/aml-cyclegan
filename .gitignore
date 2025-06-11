@@ -1,3 +1,6 @@
 dummy.txt
 **/__pycache__/
 *.pyc
+datasets/**
+datasets/
+wandb/
