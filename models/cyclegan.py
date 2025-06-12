@@ -38,7 +38,7 @@ class CycleGAN(nn.Module):
         self.lambda_clip = lambda_clip
 
         self.crit_idt = nn.L1Loss()
-        self.crit_gan = GANLoss("vanilla").to(device)
+        self.crit_gan = GANLoss("lsgan").to(device)
         self.crit_cycle = nn.L1Loss()
 
     def forward(self, real_x, real_y):
@@ -81,8 +81,8 @@ class CycleGAN(nn.Module):
         loss_cycle = loss_cycle_x + loss_cycle_y
 
         # compute CLIP loss
-        loss_clip_x = self.crit_clip(self.clip(real_x), self.clip(fake_x))
-        loss_clip_y = self.crit_clip(self.clip(real_y), self.clip(fake_y))
+        loss_clip_x = self.crit_clip(self.clip(real_x, True), self.clip(fake_x, False))
+        loss_clip_y = self.crit_clip(self.clip(real_y, True), self.clip(fake_y, False))
         loss_clip = (loss_clip_x + loss_clip_y) * self.lambda_clip
 
         # total loss: GAN loss + Cycle loss + Identity loss
@@ -109,7 +109,7 @@ class CycleGAN(nn.Module):
 
     def crit_clip(self, emb1, emb2):
         sim = F.cosine_similarity(emb1, emb2, dim=1)
-        return 1 - sim
+        return (1 - sim).mean()
 
     # from original code repo
     def set_requires_grad(self, nets, requires_grad=False):
@@ -220,19 +220,22 @@ class CLIPFeatureExtractor(nn.Module):
         super().__init__()
         self.device = device
         self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
-        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
         for parameter in self.model.parameters():
             parameter.requires_grad = False
         self.model.eval()
+        
+        self.mean = torch.tensor([0.4815, 0.4578, 0.4082]).view(1, 3, 1, 1).to(device)
+        self.std = torch.tensor([0.2686, 0.2613, 0.2758]).view(1, 3, 1, 1).to(device)
     
-    def forward(self, img):
-        img = ((img + 1) / 2).clamp(0, 1) # NCHW; [-1, 1] to [0, 1]
-        img = (img * 255).to(torch.uint8)
+    def forward(self, x, is_real):
+        x = ((x + 1) / 2).clamp(0, 1) # NCHW; [-1, 1] to [0, 1]
+        x = F.interpolate(x, size=(224, 224), mode="bicubic", align_corners=False)
+        x = (x - self.mean) / self.std
         
-        imgs = [transforms.ToPILImage()(im.cpu()) for im in img]
-        inputs = self.processor(images=imgs, return_tensors="pt", padding=True).to(self.device)
+        if is_real:
+            with torch.no_grad():
+                features = self.model.get_image_features(x) # (N, 512)
+        else:
+            features = self.model.get_image_features(x)
         
-        with torch.no_grad():
-            features = self.model.get_image_features(**inputs) # (N, 512)
-            
         return features
