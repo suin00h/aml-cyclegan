@@ -1,7 +1,7 @@
 inherit_from: configs/base_params.yaml
 
 transform:
-  size: [256,256]
+  size: [128, 128]
 
 dataset:
   name: maps
