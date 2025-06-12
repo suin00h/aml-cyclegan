@@ -4,3 +4,5 @@ dummy.txt
 datasets/**
 datasets/
 wandb/
+results/
+checkpoints/
