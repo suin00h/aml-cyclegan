@@ -29,9 +29,9 @@ def main():
     CS = cityscapes(args.cityscapes_dir)
     n_cl = len(CS.classes)
     label_frames = CS.list_label_frames(args.split)
-    caffe.set_mode_cpu()
-    # caffe.set_device(args.gpu_id)
-    # caffe.set_mode_gpu()
+    # caffe.set_mode_cpu()
+    caffe.set_device(args.gpu_id)
+    caffe.set_mode_gpu()
     net = caffe.Net(
         os.path.join(args.caffemodel_dir, 'deploy.prototxt'),
         caffe.TEST,
@@ -49,8 +49,8 @@ def main():
         city = idx.split('_')[0]
         label = CS.load_label(args.split, city, idx)
 
-        # im_file = os.path.join(args.result_dir, idx + '_leftImg8bit.png')
-        # im = np.array(Image.open(im_file).convert('RGB'))
+        im_file = os.path.join(args.result_dir, idx + '_leftImg8bit.png')
+        im = np.array(Image.open(im_file).convert('RGB'))
 
         labelim_file = os.path.join(args.result_dir, idx + '_gtFine.png')
         label_im = np.array(Image.open(labelim_file))
@@ -62,11 +62,11 @@ def main():
 
 
         # Resize using PIL to match label shape (W, H)
-        # resized_im = Image.fromarray(im).resize((label.shape[2], label.shape[1]), Image.BILINEAR)
-        # im = np.array(resized_im)
+        resized_im = Image.fromarray(im).resize((label.shape[2], label.shape[1]), Image.BILINEAR)
+        im = np.array(resized_im)
 
-        resized_label_im = np.array(Image.fromarray(label_im).resize((label.shape[2], label.shape[1]), Image.NEAREST))
-        resized_GT_label_im = np.array(Image.fromarray(GT_label_im).resize((label.shape[2], label.shape[1]), Image.NEAREST))
+        # resized_label_im = np.array(Image.fromarray(label_im).resize((label.shape[2], label.shape[1]), Image.NEAREST))
+        # resized_GT_label_im = np.array(Image.fromarray(GT_label_im).resize((label.shape[2], label.shape[1]), Image.NEAREST))
 
         # out = segrun(net, CS.preprocess(im))
         # hist_perframe += fast_hist(label.flatten(), out.flatten(), n_cl)
@@ -76,33 +76,33 @@ def main():
         acc += per_pixel_accuracy(np.array(Image.open(labelim_file)), np.array(Image.open(GT_labelim_file)))
 
         if args.save_output_images > 0:
-            # label_im = Image.fromarray(CS.palette(label))
-            # pred_im = Image.fromarray(CS.palette(out))
-            # input_im = Image.fromarray(im)
-            resized_label_im_I = Image.fromarray(CS.palette(resized_label_im).astype(np.uint8))
-            resized_GT_label_im_I = Image.fromarray(CS.palette(resized_GT_label_im).astype(np.uint8))
+            label_im = Image.fromarray(CS.palette(label))
+            pred_im = Image.fromarray(CS.palette(out))
+            input_im = Image.fromarray(im)
+            # resized_label_im_I = Image.fromarray(CS.palette(resized_label_im).astype(np.uint8))
+            # resized_GT_label_im_I = Image.fromarray(CS.palette(resized_GT_label_im).astype(np.uint8))
 
-            # label_im.save(os.path.join(output_image_dir, f'{i}_gt.jpg'))
-            # pred_im.save(os.path.join(output_image_dir, f'{i}_pred.jpg'))
-            # input_im.save(os.path.join(output_image_dir, f'{i}_input.jpg'))
-            resized_label_im_I.save(os.path.join(output_image_dir, f'{i}_input1.jpg'))
-            resized_GT_label_im_I.save(os.path.join(output_image_dir, f'{i}_input2.jpg'))
+            label_im.save(os.path.join(output_image_dir, f'{i}_gt.jpg'))
+            pred_im.save(os.path.join(output_image_dir, f'{i}_pred.jpg'))
+            input_im.save(os.path.join(output_image_dir, f'{i}_input.jpg'))
+            # resized_label_im_I.save(os.path.join(output_image_dir, f'{i}_input1.jpg'))
+            # resized_GT_label_im_I.save(os.path.join(output_image_dir, f'{i}_input2.jpg'))
 
     # Save evaluation results
-    # mean_pixel_acc, mean_class_acc, mean_class_iou, per_class_acc, per_class_iou = get_scores(hist_perframe)
+    mean_pixel_acc, mean_class_acc, mean_class_iou, per_class_acc, per_class_iou = get_scores(hist_perframe)
     mean_pixel_acc_l, mean_class_acc_l, mean_class_iou_l, per_class_acc_l, per_class_iou_l = get_scores(hist_label_perframe)
 
-    mean_pixel_acc_l = acc.mean()
+    # mean_pixel_acc_l = acc.mean()
        
 
-    # with open(os.path.join(args.output_dir, 'evaluation_results_l2p.txt'), 'w') as f:
-    #     f.write('Mean pixel accuracy: %f\n' % mean_pixel_acc)
-    #     f.write('Mean class accuracy: %f\n' % mean_class_acc)
-    #     f.write('Mean class IoU: %f\n' % mean_class_iou)
-    #     f.write('************ Per class numbers below ************\n')
-    #     for i, cl in enumerate(CS.classes):
-    #         cl = cl.ljust(15)
-    #         f.write('%s: acc = %f, iou = %f\n' % (cl, per_class_acc[i], per_class_iou[i]))
+    with open(os.path.join(args.output_dir, 'evaluation_results_l2p.txt'), 'w') as f:
+        f.write('Mean pixel accuracy: %f\n' % mean_pixel_acc)
+        f.write('Mean class accuracy: %f\n' % mean_class_acc)
+        f.write('Mean class IoU: %f\n' % mean_class_iou)
+        f.write('************ Per class numbers below ************\n')
+        for i, cl in enumerate(CS.classes):
+            cl = cl.ljust(15)
+            f.write('%s: acc = %f, iou = %f\n' % (cl, per_class_acc[i], per_class_iou[i]))
 
     with open(os.path.join(args.output_dir, 'evaluation_results_p2l.txt'), 'w') as f:
         f.write('Mean pixel accuracy: %f\n' % mean_pixel_acc_l)
