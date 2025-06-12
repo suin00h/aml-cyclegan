@@ -105,7 +105,7 @@ if __name__ == "__main__":
                     "Step": i,
                 })
 
-            if epoch % 5 == 0 and i == 0:
+            if i == 0:
                 real_A = real_x[0].detach().cpu()
                 real_B = real_y[0].detach().cpu()
                 fake_B = fake_y[0].detach().cpu()
@@ -117,6 +117,8 @@ if __name__ == "__main__":
                 image_grid_A = torch.cat([real_A, fake_B, recon_A], dim=-1)
                 image_grid_B = torch.cat([real_B, fake_A, recon_B], dim=-1)
                 image_grid = torch.cat([image_grid_A, image_grid_B], dim=1)
+                
+                image_grid = (((image_grid + 1) / 2.0) * 255).clamp(0, 255).byte()
 
                 wandb.log({
                     f"Epoch {epoch} | Generated Samples": wandb.Image(image_grid, caption=f"Epoch {epoch}")
