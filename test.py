@@ -18,7 +18,7 @@ def parse_args():
 
 
 @torch.no_grad()
-def run_inference(net_G, net_F, dataloader, save_dir):
+def run_inference(net_G, net_F, dataloader, save_dir, params):
     # Separate folders for each image type
     os.makedirs(save_dir, exist_ok=True)
 
@@ -29,7 +29,13 @@ def run_inference(net_G, net_F, dataloader, save_dir):
     net_G.eval()
     net_F.eval()
 
-    for idx, (real_x, real_y) in enumerate(dataloader):
+    for idx, batch in enumerate(dataloader):
+        if params.dataname == "cityscapes":
+            real_x, real_y, filename = batch
+        else:
+            real_x, real_y = batch
+            filename = f"{idx}"
+
         real_x = real_x.to("cuda")
         real_y = real_y.to("cuda")
 
@@ -43,12 +49,19 @@ def run_inference(net_G, net_F, dataloader, save_dir):
             fx = fake_x[b].cpu()
             fy = fake_y[b].cpu()
 
+            name_tag = filename[b] if isinstance(filename, (list, tuple)) else filename
+            
             # Save each image separately
-            save_image(x, os.path.join(os.path.join(save_dir, "real_x"), f"{idx}_{b}.png"), normalize=True)
-            save_image(fy, os.path.join(os.path.join(save_dir, "fake_y"), f"{idx}_{b}.png"), normalize=True)
-
-            save_image(y, os.path.join(os.path.join(save_dir, "real_y"), f"{idx}_{b}.png"), normalize=True)
-            save_image(fx, os.path.join(os.path.join(save_dir, "fake_x"), f"{idx}_{b}.png"), normalize=True)
+            if params.dataname == "cityscapes":
+                save_image(x, os.path.join(save_dir, "real_x", f"{name_tag}_gtFine.png"), normalize=True)
+                save_image(fy, os.path.join(save_dir, "fake_y", f"{name_tag}_leftImg8bit.png"), normalize=True)
+                save_image(y, os.path.join(save_dir, "real_y", f"{name_tag}_leftImg8bit.png"), normalize=True)
+                save_image(fx, os.path.join(save_dir, "fake_x", f"{name_tag}_gtFine.png"), normalize=True)
+            else:
+                save_image(x, os.path.join(save_dir, "real_x", f"{name_tag}_{b}.png"), normalize=True)
+                save_image(fy, os.path.join(save_dir, "fake_y", f"{name_tag}_{b}.png"), normalize=True)
+                save_image(y, os.path.join(save_dir, "real_y", f"{name_tag}_{b}.png"), normalize=True)
+                save_image(fx, os.path.join(save_dir, "fake_x", f"{name_tag}_{b}.png"), normalize=True)
 
 if __name__ == "__main__":
     args = parse_args()
@@ -70,5 +83,8 @@ if __name__ == "__main__":
     load_model_weights(net_F, F_path)
 
     # Run inference
-    save_result_dir = os.path.join("results", args.name, f"epoch_{args.epoch}")
-    run_inference(net_G, net_F, test_dataloader, save_result_dir)
+    if params.dataname == "cityscapes":
+        save_result_dir = os.path.join("results", args.name, f"fcn/epoch_{args.epoch}")
+    else:
+        save_result_dir = os.path.join("results", args.name, f"epoch_{args.epoch}")
+    run_inference(net_G, net_F, test_dataloader, save_result_dir, params)

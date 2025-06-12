@@ -86,8 +86,16 @@ class CycleGAN(nn.Module):
         loss_clip = (loss_clip_x + loss_clip_y) * self.lambda_clip
 
         # total loss: GAN loss + Cycle loss + Identity loss
-        return loss_idt + loss_gan + loss_cycle + loss_clip
+        loss_total = loss_idt + loss_gan + loss_cycle
 
+        # return dict
+        return {
+            'total': loss_total,
+            'gan': loss_gan,
+            'cycle': loss_cycle,
+            'identity': loss_idt
+        }
+        
     def get_discriminator_loss(
         self,
         real_x, real_y,

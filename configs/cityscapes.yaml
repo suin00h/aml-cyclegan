@@ -5,11 +5,8 @@ transform:
 
 dataset:
   name: cityscapes
-  path: ./datasets/cityscapes
+  path: ./datasets/cityscapes/fcn
   direction: BtoA
   A_channel: 3
   B_channel: 3
-  save_dir: ./checkpoints/cityscapes
-
-training_args:
-  lambda_idt: 0
+  save_dir: ./checkpoints/cityscapes_Batch_0.1_MSE
