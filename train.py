@@ -28,8 +28,9 @@ if __name__ == "__main__":
     dataset = TrainDataset(params)
     dataloader = DataLoader(dataset, batch_size=params.batch_size, shuffle=True)
 
-    fake_x_pool = ImageBuffer(params.max_buffer)
-    fake_y_pool = ImageBuffer(params.max_buffer)
+    if params.max_buffer > 0:
+        fake_x_pool = ImageBuffer(params.max_buffer)
+        fake_y_pool = ImageBuffer(params.max_buffer)
 
     init_wandb(params)
 
@@ -68,38 +69,43 @@ if __name__ == "__main__":
             
             # update Generator
             opt_Gen.zero_grad()
-            loss_Gen = net.get_generator_loss(
+            loss_dict = net.get_generator_loss(
                 real_x, real_y,
                 fake_x, fake_y,
                 recon_x, recon_y,
                 idt_x, idt_y
             )
-            loss_Gen.backward()
+            loss_dict['total'].backward()
             opt_Gen.step()
             
             # update Discriminator
             opt_Disc.zero_grad()
 
-            # TODO: improve buffer algorithm
-            fake_x_buffered = fake_x_pool.sample(fake_x.detach())
-            fake_y_buffered = fake_y_pool.sample(fake_y.detach())
+            if params.max_buffer > 0:
+                # TODO: improve buffer algorithm
+                fake_x_buffered = fake_x_pool.sample(fake_x.detach())
+                fake_y_buffered = fake_y_pool.sample(fake_y.detach())
 
-            loss_Disc = net.get_discriminator_loss(
-                real_x, real_y,
-                fake_x_buffered, fake_y_buffered
-            )
+                loss_Disc = net.get_discriminator_loss(
+                    real_x, real_y,
+                    fake_x_buffered, fake_y_buffered
+                )
+            else:
+                loss_Disc = net.get_discriminator_loss(
+                    real_x, real_y,
+                    fake_x, fake_y
+                )
 
-            # loss_Disc = net.get_discriminator_loss(
-            #     real_x, real_y,
-            #     fake_x, fake_y
-            # )
             loss_Disc.backward()
             opt_Disc.step()
 
             if i % 10 == 0:  # every 10 steps
                 current_lr = opt_Gen.param_groups[0]['lr']
                 wandb.log({
-                    "Generator Loss": loss_Gen.item(),
+                    "Generator Loss (Total)": loss_dict['total'].item(),
+                    "Generator Loss / GAN": loss_dict['gan'].item(),
+                    "Generator Loss / Cycle": loss_dict['cycle'].item(),
+                    "Generator Loss / Identity": loss_dict['identity'].item(),
                     "Discriminator Loss": loss_Disc.item(),
                     "Learning Rate": current_lr,
                     "Epoch": epoch,

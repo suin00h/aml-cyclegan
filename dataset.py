@@ -58,6 +58,7 @@ class TrainDataset(BaseDataset):
 class TestDataset(BaseDataset):
     def __init__(self, params):
         super().__init__(params)
+        self.params = params
         self.BtoA = params.direction == "BtoA"
 
         self.dir_A = os.path.join(self.datapath, self.params.mode + "A")
@@ -89,6 +90,10 @@ class TestDataset(BaseDataset):
         input_tensor = self.transform(input_image).cuda()
         target_tensor = self.transform(target_image).cuda()
 
+        if self.params.dataname == "cityscapes":
+            base_filename = os.path.basename(input_path).rsplit(".", 1)[0].replace("_A", "").replace("_B", "")
+            return input_tensor, target_tensor, base_filename
+        
         return input_tensor, target_tensor
 
     def __len__(self):
